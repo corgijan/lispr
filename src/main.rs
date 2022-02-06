@@ -36,7 +36,7 @@ macro_rules! lsp {
         let v = lsp![$($a)+];
         v[$n].clone()
         }};
-    ((ifff $cond:tt ($($then:tt)+) ($($else:tt)*) ))=>{
+    ((if $cond:tt ($($then:tt)+) ($($else:tt)*) ))=>{
         if lsp![ $cond] {
             lsp![($($then)+)]
         }else{
@@ -73,11 +73,11 @@ macro_rules! lsp_program {
 
 fn main() {
     lsp_program![
-       // (defun square (x) (mul x x))
-        //(print (square 3))
-        (print (ifff (eq 1 0) (1) (+ 1 1111)))
-      //  (setq a #(1 2 3))
-       // (print a)
+        (defun square (x) (mul x x))
+        (print (square 3))
+        (print (if (eq 1 0) (1) (+ 1 1111)))
+        (setq a #(1 2 3))
+        (print a)
     ];
 // assert_eq!(3,(lsp![(nth 0 (rest #(2 3 5)))]));   
 }
