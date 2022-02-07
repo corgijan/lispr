@@ -74,12 +74,12 @@ macro_rules! lsp_program {
 fn main() {
     lsp_program![
         (defun square (x) (mul x x))
-       // (print (square 3))
-       (defun fac (x) (if (eq x 1) (1) (mul x (fac (- x 1))) ))
+        (print (square 3))
+        (defun fac (x) (if (eq x 1) (1) (mul x (fac (- x 1))) ))
         (print (fac 11))
-        //(print (if (eq 1 0) (1) (+ 1 1111)))
-        //(setq a #(1 2 3))
-        //(print a)
+        (print (if (eq 1 0) (1) (+ 1 1111)))
+        (setq a #(1 2 3))
+        (print a)
     ];
 }
 
