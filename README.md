@@ -15,7 +15,8 @@ EDIT: Recursive definitions work now! (But some arithmetic operations like + and
         (setq a #(1 2 3))
         (print a)
     ];
-   // => LISPEX::LIST([LISPEX::NUMBER(1), LISPEX::LIST([NUMBER(1), LISPEX::NUMBER(2), LISPEX::NUMBER(3)])])
+   // => NUMBER(9) NUMBER(39916800) NUMBER(1112) [NUMBER(1), NUMBER(2), NUMBER(3)]
+
 ```
 
 
