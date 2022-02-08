@@ -2,7 +2,7 @@ use std::ops::{Add,Sub,Div,Mul, Index};
 
 macro_rules! lsp {
     ((+ $a:tt $b:tt)) => {{lsp![$a]+lsp![$b] }};
-    ((- $a:tt $b:tt)) => { lsp![$a]-&lsp![$b] };
+    ((- $a:tt $b:tt)) => { lsp![$a]-lsp![$b] };
     ((div $a:tt $b:tt)) => { lsp![$a] /lsp![$b] };
     ((eq $a:tt $b:tt)) => { lsp![$a].internal()==lsp![$b].internal() };
     ((mul $a:tt $b:tt)) => { lsp![$a] *&lsp![$b] };
@@ -56,7 +56,7 @@ macro_rules! lsp {
         };
 
     ($varname: ident) => {
-        $varname
+       $varname
         };
 
     ($a:expr)=>{Lispex::NUMBER($a)};
@@ -72,6 +72,7 @@ macro_rules! lsp_program {
 
 
 fn main() {
+    Lispex::NUMBER(1)-Lispex::NUMBER(2);
     lsp_program![
         (defun square (x) (mul x x))
         (print (square 3))
@@ -80,10 +81,25 @@ fn main() {
         (print (if (eq 1 0) (1) (+ 1 1111)))
         (setq a #(1 2 3))
         (print a)
+        (defun mn (x) (- 100 x))
+        (print (mn 3))
     ];
 }
 
-#[derive(Debug,Clone)]
+fn mn(x: &Lispex) -> Lispex {
+    Lispex::NUMBER(100) - x
+}
+
+ fn fac(x: &Lispex) -> Lispex {
+        if x.internal() == Lispex::NUMBER(1).internal() {
+            Lispex::NUMBER((1))
+        } else {
+            x * &fac(&(x - Lispex::NUMBER(1)))
+        }
+    }
+
+
+#[derive(Debug,Clone,PartialEq)]
 enum Lispex{
    ATOM(String),
    LIST(Vec<Lispex>),
@@ -99,6 +115,7 @@ impl Lispex {
         }
     }
 }
+
 
 
 
@@ -147,6 +164,42 @@ impl Sub for Lispex{
     }
 }
 
+impl Sub<&Lispex> for Lispex{
+    type Output = Lispex;
+    fn sub(self,o:&Lispex)->Lispex{
+        if let (Lispex::NUMBER(a),&Lispex::NUMBER(b))= (self,o){
+            Lispex::NUMBER(a-b)
+        }else{
+            panic!("cant subtract two not addable types")
+        }
+    }
+}
+
+impl Sub<Lispex> for &Lispex{
+    type Output = Lispex;
+    fn sub(self,o:Lispex)->Lispex{
+        if let (&Lispex::NUMBER(a),Lispex::NUMBER(b))= (self,o){
+            Lispex::NUMBER(a-b)
+        }else{
+            panic!("cant subtract two not addable types")
+        }
+    }
+}
+
+
+impl Sub<&&Lispex> for Lispex{
+    type Output = Lispex;
+    fn sub(self,o:&&Lispex)->Lispex{
+        if let (Lispex::NUMBER(a),&&Lispex::NUMBER(b))= (self,o){
+            Lispex::NUMBER(a-b)
+        }else{
+            panic!("cant subtract two not addable types")
+        }
+    }
+}
+
+
+
 impl Sub<Lispex> for i32{
     type Output = Lispex;
     fn sub(self,o:Lispex)->Lispex{
@@ -157,6 +210,18 @@ impl Sub<Lispex> for i32{
         }
     }
 }
+
+impl Sub<&Lispex> for i32{
+    type Output = Lispex;
+    fn sub(self,o:&Lispex)->Lispex{
+        if let (a,&Lispex::NUMBER(b))= (self,o){
+            Lispex::NUMBER(a-b)
+        }else{
+            panic!("cant subtract two not addable types")
+        }
+    }
+}
+
 
 impl Mul<Lispex> for i32{
     type Output = Lispex;
@@ -169,11 +234,22 @@ impl Mul<Lispex> for i32{
     }
 }
 
+impl Add<Lispex> for i32{
+    type Output = Lispex;
+    fn add(self,o:Lispex)->Lispex{
+        if let (a,Lispex::NUMBER(b))= (self,o){
+            Lispex::NUMBER(a+b)
+        }else{
+            panic!("cant subtract two not addable types")
+        }
+    }
+}
+
 
 impl Sub for &Lispex{
     type Output = Lispex;
     fn sub(self,o:Self)->Lispex{
-        if let (&Lispex::NUMBER(a),&Lispex::NUMBER(b))= (self,o){
+        if let (Lispex::NUMBER(a),&Lispex::NUMBER(b))= (self,o){
             Lispex::NUMBER(a-b)
         }else{
             panic!("cant subtract two not addable types")
@@ -251,9 +327,5 @@ impl Lispex{
 
 #[test]
 fn it_works() {
-    assert_eq!(4, lsp![(+ 2 2)]);
-    assert_eq!(1,lsp![(first #(1 2 3))]);
-    assert_eq!(vec![2,3],lsp![(rest #(1 2 3))]);
-    assert_eq!(vec![2,3],lsp![#(2 3)]);
-    assert_eq!(3,lsp![(nth 0 (rest #(2 3 5)))])
-}
+    assert_eq!(Lispex::NUMBER(4), lsp![(+ 2 2)]);
+  }
