@@ -1,7 +1,7 @@
 # lispr
 
-lispr is a Rust macro that tries to implement a small subset of LISPs syntax in Rust. It is neither especially beautiful or efficient since it intended as a personal exercise for me. I will also add folders with small working examples and smaller implementations (eg calculator) later. 
-Quotes ' have been replaced by # due to Rusts Internal parsing of tokens. 
+lispr is a Rust macro that tries to implement a small subset of LISPs syntax in Rust. It is neither especially beautiful or efficient since it is intended as a personal exercise for me. I will also add folders with small working examples and smaller implementations (eg calculator) later. 
+> Quotes ' have been replaced by # due to Rusts Internal parsing of tokens. 
 
 EDIT: Recursive definitions work now! (But some arithmetic operations like + and div do not :()
 EDIT: ARITHMETIC IS NOW SUPPORTED WHOOO!
