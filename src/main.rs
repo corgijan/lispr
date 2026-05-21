@@ -1,4 +1,5 @@
-use std::ops::{Add,Sub,Div,Mul, Index};
+use std::fmt::{format, Display, Formatter};
+use std::ops::{Add, Sub, Div, Mul, Index};
 
 macro_rules! lsp {
     ((+ $a:tt $b:tt)) => {{lsp![$a]+lsp![$b] }};
@@ -6,10 +7,10 @@ macro_rules! lsp {
     ((div $a:tt $b:tt)) => { lsp![$a] /lsp![$b] };
     ((eq $a:tt $b:tt)) => { lsp![$a].internal()==lsp![$b].internal() };
     ((mul $a:tt $b:tt)) => { lsp![$a] *lsp![$b] };
-    ((print $($a:tt)+ )) =>{println!("{:?}", lsp![$($a)+])};
+    ((print $($a:tt)+ )) =>{println!("{}", lsp![$($a)+])};
     ((first $($a:tt)+))=>{{
         let v=lsp![$($a)+];
-        v[0]
+        v[0].clone().clone().clone()
         }};
 
     ((rest $($a:tt)+))=>{{
@@ -25,12 +26,12 @@ macro_rules! lsp {
     ((# $($a:tt)+))=>{{
         let mut v=Vec::new();
         $(v.push(lsp![$a]);)+
-        v
+        Lispex::LIST(v)
         }};
 
     ((nth $n:tt $($a:tt)+))=>{{
         let v = lsp![$($a)+];
-        v[$n]
+        v[$n].clone()
         }};
     ((if $cond:tt ($($then:tt)+) ($($else:tt)*) ))=>{
         if lsp![$cond] {
@@ -55,11 +56,17 @@ macro_rules! lsp {
             
         };
 
+    ($name:lifetime) => {{
+        let s = stringify!($name);
+        Lispex::ATOM(s[1..].to_string())
+    }};
+
+
     ($varname: ident) => {
        $varname
         };
 
-    ($a:expr)=>{Lispex::NUMBER($a)};
+    ($a:expr)=>{Lispex::from($a)};
     
 }
 
@@ -87,19 +94,7 @@ impl $op<$implType> for $forType{
 }
 
 
-fn main() {
-    lsp_program![
-        (defun square (x) (mul x x))
-        (print (square 3))
-        (defun fac (x) (if (eq x 1) (+ 1 10) (mul x (fac (- x 1))) ))
-        (print (fac 11))
-        (print (if (eq 1 0) (1) (+ 1 1111)))
-        (setq a #(1 2 3))
-        (print a)
-        (defun mn (x) (- 100 x))
-        (print (mn 3))
-    ];
-}
+
 
 
 
@@ -107,7 +102,24 @@ fn main() {
 enum Lispex{
    ATOM(String),
    LIST(Vec<Lispex>),
-   NUMBER(i32)
+   NUMBER(i32),
+   STRING(String)
+}
+
+
+
+impl Display for Lispex{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", match self {
+            Lispex::ATOM( a) => {format!("'{a}")}
+            Lispex::LIST(a) => {
+                let x = a.iter().cloned().map(|x|format!("{}",x)).collect::<Vec<_>>().join(" ");
+                return write!(f, "#({})", x)
+            }
+            Lispex::NUMBER(a) => {format!("{a}")}
+            Lispex::STRING(a) => {format!("\"{a}\"")}
+        })
+    }
 }
 
 impl Lispex {
@@ -133,6 +145,16 @@ impl Index<usize> for Lispex {
             panic!("Cant index a non indexable thing")
         }
     }
+}
+
+impl From<&str> for Lispex {
+    fn from(s: &str) -> Lispex { Lispex::STRING(s.to_string()) }
+}
+impl From<String> for Lispex {
+    fn from(s: String) -> Lispex { Lispex::STRING(s.to_string()) }
+}
+impl From<i32> for Lispex {
+    fn from(n: i32) -> Lispex { Lispex::NUMBER(n) }
 }
 
 
@@ -249,3 +271,20 @@ impl Lispex{
 fn it_works() {
     assert_eq!(Lispex::NUMBER(4), lsp![(+ 2 2)]);
   }
+
+fn main() {
+    lsp_program![
+        (defun square (x) (mul x x))
+        (print (square 3))
+
+        (defun fac (x) (if (eq x 1) (1) (mul x (fac (- x 1))) ))
+        (print (fac 3))
+        (print (if (eq 1 0) (1) (+ 1 1111)))
+        (setq a #(1 2 3))
+        (setq name #('test "aa" 'apples 'alex_payne "123.3" 3))
+        (print (nth 0 name))
+
+        //(defun mn (x) (- 100 x))
+        //(print (mn 3))
+    ];
+}
